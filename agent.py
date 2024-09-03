@@ -24,8 +24,8 @@ class agent:
             action = possible_actions[random.randint(0, len(possible_actions)) - 1]
         else:
             # choose the actions that have the highest values
-            values = np.array([self.Q[a][s] for a in possible_actions])
-            ix_max = np.where(values == np.max(values))
+            values = np.array([self.Q[a][self.make_hash(s)]for a in possible_actions])
+            ix_max = np.where(values == np.max(values))[0]
             if len(ix_max) > 1:
                 ix_select = np.random.choice(ix_max, 1)[0]
             else:
@@ -42,7 +42,10 @@ class agent:
         if s_ is not None:
             # if the state is not terminal 
             possible_actions = [action for action in self.actions if s_[1][action[0]][action[1]]!= "_"]
-            Q_options = [self.Q[a][s_] for a in possible_actions]
-            self.Q[a][s] += self.alpha*(r + self.gamma*max(Q_options)- self.Q[a][s])
+            Q_options = [self.Q[a][self.make_hash(s_)] for a in possible_actions]
+            self.Q[a][self.make_hash(s)] += self.alpha*(r + self.gamma*max(Q_options)- self.Q[a][self.make_hash(s)])
         else:
-            self.Q[a][s] += self.alpha*(r - self.Q[a][s])
+            self.Q[a][self.make_hash(s)] += self.alpha*(r - self.Q[a][self.make_hash(s)])
+
+    def make_hash(self, s):
+        return tuple((s[0], tuple(map(tuple, s[1])))) 

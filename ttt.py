@@ -50,10 +50,10 @@ class ttt:
     def check_termination(self):
         # take the current state of the board, check if ewe have reacjed the termination 
         if self.check_win():
-            print(f"Player {self.possible_actions[self.current_player]} wins")
+            # print(f"Player {self.possible_actions[self.current_player]} wins")
             return True,f"{self.possible_actions[self.current_player]} wins", 10
         if self.check_end():
-            print(f"Game ended - Its a draw")
+            # print(f"Game ended - Its a draw")
             return True, "game draw", 5
         return False, "", -1
 
