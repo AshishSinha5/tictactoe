@@ -18,26 +18,28 @@ class ttt:
     def update_player(self):
         self.current_player = (1 + self.current_player)%2
 
-    def play(self):
-        while True:
-            self.print_board()
-            inp = input(f"You are {self.possible_actions[self.current_player]}, Where do you want to play?\n")
-            try:
-                r, c  = inp.split(" ")
-                r, c = int(r), int(c)
-                self.current_index = (r,c)
-                if not self.check_valid_move():
-                    print("Invalid Move, try again")
-                    continue
-                else:
-                    break
-            except:
-                print("Invalid Move, try again, enter <row> <col>")
-                continue
+    def play(self,r ,c):
+        #        while True:
+        #            self.print_board()
+        #            inp = input(f"You are {self.possible_actions[self.current_player]}, Where do you want to play?\n")
+        #            try:
+        #                r, c  = inp.split(" ")
+        #                r, c = int(r), int(c)
+        #                self.current_index = (r,c)
+        #                if not self.check_valid_move():
+        #                    print("Invalid Move, try again")
+        #                    continue
+        #                else:
+        #                    break
+        #            except:
+        #                print("Invalid Move, try again, enter <row> <col>")
+        #                continue
+        # recieve action, do move
+        self.current_index = (r,c)
         self.do_move()
-        if not self.check_termination():
-            self.update_player()
-            self.play()
+        terminated, reason, reward = self.check_termination()
+        self.update_player()
+        return (self.current_player, self.board), reward, terminated, reason
 
     def check_valid_move(self):
         r,c  = self.current_index
@@ -49,11 +51,11 @@ class ttt:
         # take the current state of the board, check if ewe have reacjed the termination 
         if self.check_win():
             print(f"Player {self.possible_actions[self.current_player]} wins")
-            return True
+            return True,f"{self.possible_actions[self.current_player]} wins", 10
         if self.check_end():
             print(f"Game ended - Its a draw")
-            return True 
-        return False
+            return True, "game draw", 5
+        return False, "", -1
 
     def check_win(self):
         r,c = self.current_index
