@@ -9,6 +9,8 @@ class ttt:
 
     def reset_board(self):
         self.board = np.full((3, 3), "_")
+        self.current_player = 0
+        self.current_index = (None, None)
     
     def do_move(self):
         # do the move at the current possition
