@@ -1,75 +1,77 @@
-"""
-Algorthm Overview
-- Intitalize the agent 
-- State - {"X", current_state}
-- Take action using the Q learning algorithm
-- Recieve the reward for the action
-- Recieve the updated state - {"O", updated_state}
-- Update the Q function using the bellman equation 
-- Keep playing till the terminal state is reached 
+import tkinter as tk
+from tkinter import messagebox
+import pickle 
+from ttt import ttt
+from agent import agent
+import numpy as np
 
-Reward Model 
-- Loss = -10 
-- Draw = 0
-- Win = +10
-- For every other move = -1
-"""
-import pickle
-from tqdm import tqdm
-from ttt import ttt 
-from agent import agent 
-import matplotlib.pyplot as plt
 
-class play:
-    def __init__(self, num_episodes = 100000):
-        self.ttt = ttt()
-        self.agent = agent(eps_decay=0.95)
-        self.num_episodes = num_episodes
-        self.cummulative_reward = []
+class ttt_gui:
+    def __init__(self, master : tk.Tk):
+        self.master = master
+        self.master.title("Tic-Tac-Toe with bot")
+        self.game = ttt()
+        self.bot = agent(eps=0)
+        self.load_q_weights()
 
-    def step(self, action):
-        s, r, t, inf = self.ttt.play(action[0], action[1])
-        return s, r, t, inf
+        self.buttons = [[None for _ in range(3)] for _ in range(3)]
+        self.create_board()
 
-    def simulate(self):
-        self.cummulative_reward = []
-        for ep in tqdm(range(self.num_episodes)):
-            # get actions
-            self.ttt.reset_board()
-            s = (0, self.ttt.board.copy())
-            t = False
-            ep_reward = 0
-            iter = 0
-            while not t:
-                # import pdb; pdb.set_trace()
-                iter+=1
-                action = self.agent.get_action(s)   
-                new_s, r, t, _ = self.step(action)
-                ep_reward += r
-                if t:
-                    self.agent.update(s, None, action, None, r)
-                    break
-                self.agent.update(s, new_s, action, None, r)
-                s = (new_s[0], new_s[1].copy()) 
-            if ep%1000 == 0:
-                self.cummulative_reward.append(ep_reward/iter)
+        self.reset_button = tk.Button(master, text="New Game", command=self.reset_game)
+        self.reset_button.grid(row = 3, column=0, columnspan=3)
+        self.player_turn = True
 
-    def plot_rewards(self):
-        plt.plot(self.cummulative_reward)
-        plt.title("Cummulative Reward Plot")
-        plt.xlabel("Episodes")
-        plt.ylabel("Average Cummulative Rewards")
-        plt.savefig("reward_plot.png")
 
-    def save_weights(self):
-        with open("q_weights.pkl", "wb") as f:
-            pickle.dump(self.agent.Q, f, protocol=pickle.HIGHEST_PROTOCOL)
+    def load_q_weights(self):
+        with open('q_weights.pkl', 'rb') as f:
+            self.bot.Q = pickle.load(f)
+
+    def create_board(self):
+        for i in range(3):
+            for j in range(3):
+                self.buttons[i][j] = tk.Button(self.master, text="", font=('normal', 20), width=5, height=2,
+                                               command=lambda row=i, col=j: self.on_click(row, col))
+                self.buttons[i][j].grid(row=i, column=j)
+
+    def on_click(self, r, c):
+        if self.player_turn and self.game.board[r][c] == "_":
+            self.make_move(r, c, "X")
+            if not self.check_game_over():
+                self.player_turn = False
+                self.master.after(500, self.bot_move)
+
+    def bot_move(self):
+        state = (1, self.game.board)
+        action = self.bot.get_action(state)
+        self.make_move(action[0], action[1], "0")
+        if not self.check_game_over():
+            self.player_turn = True
+
+    def make_move(self, r, c, player):
+        self.game.current_index = (r, c)
+        self.game.current_player = 0 if player == 'X' else 1
+        self.game.do_move()
+        self.buttons[r][c].config(text=player)
+        
+    def check_game_over(self):
+        terminated, reason, _ = self.game.check_termination()
+        if terminated:
+            messagebox.showinfo(reason)
+            self.reset_game()
+            return True
+        return False
+
+    def reset_game(self):
+        self.game.reset_board()
+        for i in range(3):
+            for j in range(3):
+                self.buttons[i][j].config(text="")
+        self.player_turn = True
 
 def main():
-    learn_game = play()
-    learn_game.simulate()
-    learn_game.plot_rewards()
-    learn_game.save_weights()
+    root = tk.Tk()
+    ttt_gui(root)
+    root.mainloop()
 
 if __name__ == "__main__":
     main()
