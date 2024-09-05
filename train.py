@@ -1,6 +1,7 @@
 from env import ticTacToe
 from agent import agent  
-from collections import defaultdict
+from collections import defaultdict, deque
+import matplotlib.pyplot as plt
 
 class simulation:
     def __init__(self, num_episodes = 200000):
@@ -33,15 +34,18 @@ class simulation:
             winner_count[winner] += 1
             if ep % 50000 == 0:
                 print(f"Episode={ep}, Winner={winner}")
-
             self.agent.eps = max(0.01, self.agent.eps*0.9999)
         print(winner_count)
         self.agent.save_q_weights()
 
-
-def main():
-    train = simulation()
+def main(args):
+    ep = args.ep
+    train = simulation(num_episodes = ep)
     train.simulate()
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--ep", type=int, default=2000000, required=False)
+    args = parser.parse_args()
+    main(args)

@@ -32,7 +32,7 @@ class ticTacToe:
         for combo in winning_combos:
             if ("-" not in [self.board[combo[0]], self.board[combo[1]], self.board[combo[2]]]) and (self.board[combo[0]] == self.board[combo[1]] == self.board[combo[2]]):
                 if self.current_player == self.board[combo[0]]:
-                    reward = 1
+                    reward =1
                     termination = True
                 else:
                     reward = -1

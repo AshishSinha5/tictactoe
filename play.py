@@ -7,11 +7,11 @@ import numpy as np
 
 
 class ttt_gui:
-    def __init__(self, master : tk.Tk):
+    def __init__(self, master : tk.Tk, eps = 0):
         self.master = master
         self.master.title("Tic-Tac-Toe with bot")
         self.game = ticTacToe()
-        self.bot = agent(eps=0)
+        self.bot = agent(eps=eps)
         self.load_q_weights()
 
         self.buttons = [[None for _ in range(3)] for _ in range(3)]
@@ -81,11 +81,17 @@ class ttt_gui:
             self.bot_move()
             self.player_turn = True
 
-def main():
+def main(args):
+    eps = args.eps
     root = tk.Tk()
-    ttt_gui(root)
+    print(eps)
+    ttt_gui(root, eps=eps)
     root.mainloop()
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--eps", type=float, default=0.0, required=False)
+    args = parser.parse_args()
+    main(args)
 
