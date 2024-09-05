@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 import pickle 
-from ttt import ttt
+from env import ticTacToe 
 from agent import agent
 import numpy as np
 
@@ -10,7 +10,7 @@ class ttt_gui:
     def __init__(self, master : tk.Tk):
         self.master = master
         self.master.title("Tic-Tac-Toe with bot")
-        self.game = ttt()
+        self.game = ticTacToe()
         self.bot = agent(eps=0)
         self.load_q_weights()
 
@@ -19,12 +19,14 @@ class ttt_gui:
 
         self.reset_button = tk.Button(master, text="New Game", command=self.reset_game)
         self.reset_button.grid(row = 3, column=0, columnspan=3)
-        self.player_turn = True
-
+        self.player_turn = np.random.uniform() <= 0.5
+        if not self.player_turn:
+            self.bot_move()
+            self.player_turn = True
 
     def load_q_weights(self):
-        with open('q_weights.pkl', 'rb') as f:
-            self.bot.Q = pickle.load(f)
+        with open('q_table.pkl', 'rb') as f:
+            self.bot.q_table = pickle.load(f)
 
     def create_board(self):
         for i in range(3):
@@ -34,29 +36,37 @@ class ttt_gui:
                 self.buttons[i][j].grid(row=i, column=j)
 
     def on_click(self, r, c):
-        if self.player_turn and self.game.board[r][c] == "_":
-            self.make_move(r, c, "X")
+        print(self.game.board)
+        print(self.player_turn)
+        print(r, c)
+        if self.player_turn and self.game.board[r*3 + c] == "-":
+            self.make_move(r, c, self.game.current_player)
             if not self.check_game_over():
                 self.player_turn = False
                 self.master.after(500, self.bot_move)
 
     def bot_move(self):
-        state = (1, self.game.board)
-        action = self.bot.get_action(state)
-        self.make_move(action[0], action[1], "0")
+        state = self.game.get_state()
+        player = self.game.current_player
+        print(f"bot player = {player}")
+        action = self.bot.choose_action(state, player)
+        r = action//3
+        c = action - 3*r
+        self.make_move(r, c, player)
         if not self.check_game_over():
             self.player_turn = True
 
     def make_move(self, r, c, player):
-        self.game.current_index = (r, c)
-        self.game.current_player = 0 if player == 'X' else 1
-        self.game.do_move()
+        self.game.make_move(r*3 + c)
         self.buttons[r][c].config(text=player)
-        
+        self.game.switch_player()
+
     def check_game_over(self):
-        terminated, reason, _ = self.game.check_termination()
+        _, terminated, reason= self.game.check_state()
+        print(f"{terminated = }")
         if terminated:
-            messagebox.showinfo(reason)
+            print(reason)
+            messagebox.showinfo(message = reason)
             self.reset_game()
             return True
         return False
@@ -66,7 +76,10 @@ class ttt_gui:
         for i in range(3):
             for j in range(3):
                 self.buttons[i][j].config(text="")
-        self.player_turn = True
+        self.player_turn = np.random.random() <= 0.5
+        if not self.player_turn:
+            self.bot_move()
+            self.player_turn = True
 
 def main():
     root = tk.Tk()
