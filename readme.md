@@ -15,8 +15,8 @@ This project implements a Tic-Tac-Toe game where you can play against a bot trai
 
 1. Clone this repository:
    ```
-   git clone <repository-url>
-   cd <repository-name>
+   git clone https://github.com/AshishSinha5/tictactoe
+   cd tictactoe
    ```
 
 2. Create and activate a virtual environment:
